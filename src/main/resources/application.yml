@@ -5,6 +5,8 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:pizzasales}
     username: ${DB_USERNAME:pizzasalesuser}
     password: ${DB_PASSWORD:pizzasalespw}
+  flyway:
+    enabled: false # migrations run as a separate CI/CD step, not on app startup (see README)
 
 management:
   endpoints:
