@@ -1,4 +1,4 @@
-package com.karlobathan.pizzasalesapi;
+package com.karlobathan.pizzasales;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
