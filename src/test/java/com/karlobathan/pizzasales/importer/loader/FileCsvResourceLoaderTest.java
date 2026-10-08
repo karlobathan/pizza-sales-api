@@ -1,5 +1,6 @@
 package com.karlobathan.pizzasales.importer.loader;
 
+import com.opencsv.bean.CsvBindAndSplitByName;
 import com.opencsv.bean.CsvBindByName;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +40,36 @@ class FileCsvResourceLoaderTest {
     }
 
     @Test
+    @DisplayName("loadCsvFile reads all rows into beans with row containing multiple values")
+    void loadCsvFile_readsAllRowsIntoBeansWithMultipleValues() {
+        List<SampleRowWithList> rows = new ArrayList<>();
+
+        CsvSource<SampleRowWithList> sampleRowCsvSource = loader.loadResource("classpath:csv/sample-with-list.csv",
+                SampleRowWithList.class
+        );
+        sampleRowCsvSource.forEach(rows::add);
+
+        assertThat(rows).hasSize(5);
+        assertThat(rows.getFirst()).extracting(SampleRowWithList::getId,
+                SampleRowWithList::getName,
+                SampleRowWithList::getPrice
+        ).containsExactly(1, "Margherita", 9.50);
+        assertThat(rows.getFirst().getIngredients()).containsExactly("Tomato Sauce", "Mozzarella", "Basil");
+        assertThat(rows.getLast()).extracting(SampleRowWithList::getId,
+                SampleRowWithList::getName,
+                SampleRowWithList::getPrice
+        ).containsExactly(5, "Veggie", 10.00);
+        assertThat(rows.getLast().getIngredients()).containsExactly("Tomato Sauce",
+                "Mozzarella",
+                "Bell Peppers",
+                "Onions",
+                "Mushrooms",
+                "Olives"
+        );
+        assertThat(rows).extracting(SampleRowWithList::getId).containsExactly(1, 2, 3, 4, 5);
+    }
+
+    @Test
     @DisplayName("constructor rejects null resourceLoader")
     void constructor_rejectsNullResourceLoader() {
         assertThatNullPointerException().isThrownBy(() -> new FileCsvResourceLoader(null))
@@ -56,6 +87,14 @@ class FileCsvResourceLoaderTest {
 
         @CsvBindByName(column = "price", required = true)
         private Double price;
+
+    }
+
+    @Getter
+    public static class SampleRowWithList extends SampleRow {
+
+        @CsvBindAndSplitByName(column = "ingredients", required = true, elementType = String.class, splitOn = BinderConfig.SPLIT_ON_COMMA_DELIMITER)
+        private List<String> ingredients;
 
     }
 }
