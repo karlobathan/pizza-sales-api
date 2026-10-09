@@ -139,7 +139,7 @@ class DefaultOrderServiceTest {
         Pizza pizza = Pizza.builder().id(10L).price(new BigDecimal("12.50")).build();
         Order saved = Order.builder().id(7L).orderDate(date).orderTime(time).build();
         OrderResponse response = new OrderResponse(7L, date, time, List.of(), 0, BigDecimal.ZERO);
-        when(pizzaRepository.findWithPizzaTypeByIdIn(Set.of(10L))).thenReturn(List.of(pizza));
+        when(pizzaRepository.findActiveWithPizzaTypeByIdIn(Set.of(10L))).thenReturn(List.of(pizza));
         when(orderRepository.save(any(Order.class))).thenReturn(saved);
         when(orderItemRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
         when(orderMapper.toResponse(any(Order.class), anyList())).thenReturn(response);
@@ -169,7 +169,7 @@ class DefaultOrderServiceTest {
     @DisplayName("create rejects unknown pizzas listing their ids without saving anything")
     void create_rejectsUnknownPizzasWithoutSaving() {
         Pizza pizza = Pizza.builder().id(10L).build();
-        when(pizzaRepository.findWithPizzaTypeByIdIn(Set.of(10L, 98L, 99L))).thenReturn(List.of(pizza));
+        when(pizzaRepository.findActiveWithPizzaTypeByIdIn(Set.of(10L, 98L, 99L))).thenReturn(List.of(pizza));
 
         assertThatExceptionOfType(InvalidRequestException.class).isThrownBy(() -> service.create(new OrderRequest(LocalDate.of(2015, 3, 1),
                 LocalTime.of(18, 30),
@@ -212,7 +212,7 @@ class DefaultOrderServiceTest {
         Order order = Order.builder().id(7L).orderDate(LocalDate.of(2015, 1, 1)).orderTime(LocalTime.NOON).build();
         OrderResponse response = new OrderResponse(7L, date, time, List.of(), 0, BigDecimal.ZERO);
         when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
-        when(pizzaRepository.findWithPizzaTypeByIdIn(Set.of(10L))).thenReturn(List.of(pizza));
+        when(pizzaRepository.findActiveWithPizzaTypeByIdIn(Set.of(10L))).thenReturn(List.of(pizza));
         when(orderItemRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
         when(orderMapper.toResponse(any(Order.class), anyList())).thenReturn(response);
         Instant before = Instant.now();
@@ -241,7 +241,7 @@ class DefaultOrderServiceTest {
     void replace_leavesOrderUntouchedWhenPizzaIsUnknown() {
         Order order = Order.builder().id(7L).orderDate(LocalDate.of(2015, 1, 1)).orderTime(LocalTime.NOON).build();
         when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
-        when(pizzaRepository.findWithPizzaTypeByIdIn(Set.of(99L))).thenReturn(List.of());
+        when(pizzaRepository.findActiveWithPizzaTypeByIdIn(Set.of(99L))).thenReturn(List.of());
 
         assertThatExceptionOfType(InvalidRequestException.class).isThrownBy(() -> service.replace(7L,
                 new OrderRequest(LocalDate.of(2015, 3, 1), LocalTime.of(18, 30), List.of(new OrderItemRequest(99L, 1)))

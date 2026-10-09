@@ -37,6 +37,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ProblemDetail handleConflict(ConflictException e) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        problem.setTitle("Conflict");
+        return problem;
+    }
+
     /**
      * A request body that fails bean validation: lists every invalid field under {@code errors}, e.g.
      * {@code [{"field": "items[0].quantity", "message": "must be greater than 0"}]}, sorted by field.

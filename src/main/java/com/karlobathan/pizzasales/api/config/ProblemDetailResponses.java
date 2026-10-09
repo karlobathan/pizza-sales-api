@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,6 +19,8 @@ final class ProblemDetailResponses {
 
     static final String NOT_FOUND   = "NotFound";
     static final String BAD_REQUEST = "BadRequest";
+    static final String WRITE_BAD_REQUEST = "WriteBadRequest";
+    static final String CONFLICT = "Conflict";
 
     // registered by OpenApiConfig
     private static final String PROBLEM_DETAIL_SCHEMA = "#/components/schemas/ProblemDetail";
@@ -64,6 +67,13 @@ final class ProblemDetailResponses {
         example.put("status", status);
         example.put("detail", detail);
         example.put("instance", instance);
+        return example;
+    }
+
+    // a request body that fails validation: the same shape ApiExceptionHandler returns, with the invalid fields
+    static Map<String, Object> validationExample(String instance, String field, String message) {
+        Map<String, Object> example = example("Invalid request", 400, "The request body has invalid fields", instance);
+        example.put("errors", List.of(Map.of("field", field, "message", message)));
         return example;
     }
 

@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
 @Table(name = "pizza")
@@ -47,4 +48,7 @@ public class Pizza {
 
     @Column(nullable = false, precision = 6, scale = 2)
     private BigDecimal price;
+
+    // soft delete: menu queries skip deleted rows explicitly, but orders still load the pizzas they were placed with
+    private Instant deletedAt;
 }

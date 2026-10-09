@@ -1,7 +1,9 @@
 package com.karlobathan.pizzasales.api.config;
 
 import static com.karlobathan.pizzasales.api.config.ProblemDetailResponses.BAD_REQUEST;
+import static com.karlobathan.pizzasales.api.config.ProblemDetailResponses.CONFLICT;
 import static com.karlobathan.pizzasales.api.config.ProblemDetailResponses.NOT_FOUND;
+import static com.karlobathan.pizzasales.api.config.ProblemDetailResponses.WRITE_BAD_REQUEST;
 
 /**
  * References to the error response components registered by the resource customizers
@@ -14,9 +16,13 @@ public final class ApiDocs {
 
     public static final String PIZZA_TYPE_NOT_FOUND   = RESPONSES + PizzaOpenApiCustomizer.PIZZA_TYPE + NOT_FOUND;
     public static final String PIZZA_TYPE_BAD_REQUEST = RESPONSES + PizzaOpenApiCustomizer.PIZZA_TYPE + BAD_REQUEST;
+    public static final String PIZZA_TYPE_WRITE_BAD_REQUEST = RESPONSES + PizzaOpenApiCustomizer.PIZZA_TYPE + WRITE_BAD_REQUEST;
+    public static final String PIZZA_TYPE_CONFLICT    = RESPONSES + PizzaOpenApiCustomizer.PIZZA_TYPE + CONFLICT;
 
     public static final String PIZZA_NOT_FOUND   = RESPONSES + PizzaOpenApiCustomizer.PIZZA + NOT_FOUND;
     public static final String PIZZA_BAD_REQUEST = RESPONSES + PizzaOpenApiCustomizer.PIZZA + BAD_REQUEST;
+    public static final String PIZZA_WRITE_BAD_REQUEST = RESPONSES + PizzaOpenApiCustomizer.PIZZA + WRITE_BAD_REQUEST;
+    public static final String PIZZA_CONFLICT    = RESPONSES + PizzaOpenApiCustomizer.PIZZA + CONFLICT;
 
     public static final String ORDER_NOT_FOUND          = RESPONSES + OrderOpenApiCustomizer.ORDER + NOT_FOUND;
     public static final String ORDER_BAD_REQUEST        = RESPONSES + OrderOpenApiCustomizer.ORDER + BAD_REQUEST;

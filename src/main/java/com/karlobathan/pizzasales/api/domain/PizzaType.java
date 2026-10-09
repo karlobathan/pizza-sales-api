@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -49,4 +50,7 @@ public class PizzaType {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "pizza_type_ingredient", joinColumns = @JoinColumn(name = "pizza_type_id"), inverseJoinColumns = @JoinColumn(name = "pizza_ingredient_id"))
     private Set<PizzaIngredient> pizzaIngredients = new HashSet<>();
+
+    // soft delete: menu queries skip deleted rows explicitly, but orders still load the pizza types they were placed with
+    private Instant deletedAt;
 }
