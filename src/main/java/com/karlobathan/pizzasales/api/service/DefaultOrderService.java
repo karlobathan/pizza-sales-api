@@ -119,7 +119,7 @@ public class DefaultOrderService implements OrderService {
     // every referenced pizza, with its pizza type for the response, in one query; fails before anything is saved
     private Map<Long, Pizza> findPizzas(List<OrderItemRequest> items) {
         Set<Long> pizzaIds = items.stream().map(OrderItemRequest::pizzaId).collect(Collectors.toSet());
-        Map<Long, Pizza> pizzas = pizzaRepository.findWithPizzaTypeByIdIn(pizzaIds)
+        Map<Long, Pizza> pizzas = pizzaRepository.findActiveWithPizzaTypeByIdIn(pizzaIds)
                 .stream()
                 .collect(Collectors.toMap(Pizza::getId, Function.identity()));
 

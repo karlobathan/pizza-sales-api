@@ -22,6 +22,13 @@ public class InvalidRequestException extends RuntimeException {
     }
 
     /**
+     * For a pizza that references a pizza type that doesn't exist (or is deleted).
+     */
+    public static InvalidRequestException unknownPizzaType(Long pizzaTypeId) {
+        return new InvalidRequestException("Unknown pizza type id: " + pizzaTypeId);
+    }
+
+    /**
      * For order items that reference pizzas that don't exist. The OpenAPI example uses this too, so docs and API agree.
      */
     public static InvalidRequestException unknownPizzas(Collection<Long> pizzaIds) {
