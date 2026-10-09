@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
-class PizzaApiIntegrationTest {
+class PizzaApiIT {
 
     @Autowired
     private MockMvc mockMvc;

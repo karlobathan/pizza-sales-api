@@ -13,7 +13,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// same properties as OrderImportOrchestratorIntegrationTest so both share one cached context and container
+// same properties as OrderImportOrchestratorIT so both share one cached context and container
 @SpringBootTest(properties = {
         "spring.flyway.enabled=true",
         "app.import.pizzas.types-file=classpath:csv/pizza-types.csv",
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "app.import.chunk-size=2" // 5 orders -> chunks of 2, 2 and 1; 7 order items -> 2, 2, 2 and 1
 })
 @Import(TestcontainersConfiguration.class)
-class PizzaImportOrchestratorIntegrationTest {
+class PizzaImportOrchestratorIT {
 
     @Autowired
     private PizzaImportOrchestrator orchestrator;
