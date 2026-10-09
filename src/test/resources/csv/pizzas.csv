@@ -1,0 +1,7 @@
+pizza_id,pizza_type_id,size,price
+bbq_ckn_s,bbq_ckn,S,12.75
+bbq_ckn_l,bbq_ckn,L,20.75
+ckn_pesto_m,ckn_pesto,M,16.75
+pep_msh_pep_s,pep_msh_pep,S,11
+pepperoni_xl,pepperoni,XL,25.5
+pepperoni_xxl,pepperoni,XXL,35.95
