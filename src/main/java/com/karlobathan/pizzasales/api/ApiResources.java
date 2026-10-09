@@ -14,6 +14,9 @@ public final class ApiResources {
     public static final String PIZZA       = "Pizza";
     public static final String PIZZAS_PATH = "/api/pizzas";
 
+    public static final String ORDER       = "Order";
+    public static final String ORDERS_PATH = "/api/orders";
+
     private ApiResources() {
     }
 }

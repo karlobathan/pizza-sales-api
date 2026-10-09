@@ -17,4 +17,11 @@ public class ApiExceptionHandler {
         problem.setTitle("Resource not found");
         return problem;
     }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    public ProblemDetail handleInvalidRequest(InvalidRequestException e) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+        problem.setTitle("Invalid request");
+        return problem;
+    }
 }
