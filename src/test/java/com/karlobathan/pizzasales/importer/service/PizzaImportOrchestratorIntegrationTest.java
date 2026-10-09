@@ -16,7 +16,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(properties = {
         "spring.flyway.enabled=true",
         "app.import.pizza-types-file=classpath:csv/pizza-types.csv",
-        "app.import.pizzas-file=classpath:csv/pizzas.csv"
+        "app.import.pizzas-file=classpath:csv/pizzas.csv",
+        "app.import.orders-file=classpath:csv/orders.csv",
+        "app.import.chunk-size=2" // 5 orders -> chunks of 2, 2 and 1
 })
 @Import(TestcontainersConfiguration.class)
 class PizzaImportOrchestratorIntegrationTest {
@@ -30,7 +32,7 @@ class PizzaImportOrchestratorIntegrationTest {
     @BeforeEach
     void setUp() {
         jdbcClient.sql("""
-                TRUNCATE pizza, pizza_type_ingredient, pizza_type, pizza_ingredient, pizza_category
+                TRUNCATE orders, pizza, pizza_type_ingredient, pizza_type, pizza_ingredient, pizza_category
                 RESTART IDENTITY CASCADE
                 """).update();
     }
@@ -103,6 +105,7 @@ class PizzaImportOrchestratorIntegrationTest {
         assertThat(count("pizza_ingredient")).isEqualTo(9);
         assertThat(count("pizza_type_ingredient")).isEqualTo(13);
         assertThat(count("pizza")).isEqualTo(6);
+        assertThat(count("orders")).isEqualTo(5);
     }
 
     @Test
@@ -198,6 +201,42 @@ class PizzaImportOrchestratorIntegrationTest {
                 JOIN pizza_type pt ON pt.id = p.pizza_type_id
                 WHERE pt.code = 'pepperoni'
                 """).query(Long.class).single()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("run persists every order with its source id, date and time")
+    void run_persistsOrdersWithSourceIdDateAndTime() {
+        orchestrator.run();
+
+        List<String> orders = jdbcClient.sql("""
+                SELECT source_order_id || '|' || order_date || '|' || order_time
+                FROM orders
+                ORDER BY source_order_id
+                """).query(String.class).list();
+
+        assertThat(orders).containsExactly(
+                "1|2015-01-01|11:38:36",
+                "2|2015-01-01|11:57:40",
+                "3|2015-01-02|12:12:28",
+                "4|2015-06-15|18:05:00",
+                "5|2015-12-31|23:02:05"
+        );
+    }
+
+    @Test
+    @DisplayName("run skips orders whose source id already exists")
+    void run_skipsOrdersWhoseSourceIdAlreadyExists() {
+        jdbcClient.sql("""
+                INSERT INTO orders (source_order_id, order_date, order_time)
+                VALUES (1, '2020-02-02', '10:00:00')
+                """).update();
+
+        orchestrator.run();
+
+        assertThat(count("orders")).isEqualTo(5);
+        assertThat(jdbcClient.sql("SELECT order_date || '|' || order_time FROM orders WHERE source_order_id = 1")
+                .query(String.class)
+                .single()).isEqualTo("2020-02-02|10:00:00");
     }
 
     private List<String> ingredientsOf(String pizzaTypeCode) {

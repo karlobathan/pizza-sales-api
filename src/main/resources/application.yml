@@ -20,6 +20,8 @@ app:
   import:
     pizza-types-file: classpath:data/pizza_types.csv
     pizzas-file: classpath:data/pizzas.csv
+    orders-file: classpath:data/orders.csv
+    chunk-size: 1000
 
 management:
   endpoints:
