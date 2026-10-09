@@ -3,6 +3,7 @@ package com.karlobathan.pizzasales.importer.loader;
 import com.opencsv.bean.CsvToBeanBuilder;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,7 +15,8 @@ import java.util.Objects;
  * Loads CSV data from a Spring {@link Resource} location (classpath: or file:),
  * decoding as UTF-8.
  */
-public final class FileCsvResourceLoader implements CsvResourceLoader {
+@Component
+public class FileCsvResourceLoader implements CsvResourceLoader {
 
     private final ResourceLoader resourceLoader;
 

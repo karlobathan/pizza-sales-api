@@ -7,6 +7,19 @@ spring:
     password: ${DB_PASSWORD:pizzasalespw}
   flyway:
     enabled: false # migrations run as a separate CI/CD step, not on app startup (see README)
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 500
+        order_inserts: true
+        order_updates: true
+
+app:
+  import:
+    pizza-types-file: classpath:data/pizza_types.csv
+    pizzas-file: classpath:data/pizzas.csv
 
 management:
   endpoints:
