@@ -18,7 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         "app.import.pizza-types-file=classpath:csv/pizza-types.csv",
         "app.import.pizzas-file=classpath:csv/pizzas.csv",
         "app.import.orders-file=classpath:csv/orders.csv",
-        "app.import.chunk-size=2" // 5 orders -> chunks of 2, 2 and 1
+        "app.import.order-details-file=classpath:csv/order-details.csv",
+        "app.import.chunk-size=2" // 5 orders -> chunks of 2, 2 and 1; 7 order items -> 2, 2, 2 and 1
 })
 @Import(TestcontainersConfiguration.class)
 class PizzaImportOrchestratorIntegrationTest {
@@ -32,7 +33,7 @@ class PizzaImportOrchestratorIntegrationTest {
     @BeforeEach
     void setUp() {
         jdbcClient.sql("""
-                TRUNCATE orders, pizza, pizza_type_ingredient, pizza_type, pizza_ingredient, pizza_category
+                TRUNCATE order_item, orders, pizza, pizza_type_ingredient, pizza_type, pizza_ingredient, pizza_category
                 RESTART IDENTITY CASCADE
                 """).update();
     }
@@ -106,6 +107,7 @@ class PizzaImportOrchestratorIntegrationTest {
         assertThat(count("pizza_type_ingredient")).isEqualTo(13);
         assertThat(count("pizza")).isEqualTo(6);
         assertThat(count("orders")).isEqualTo(5);
+        assertThat(count("order_item")).isEqualTo(7);
     }
 
     @Test
@@ -237,6 +239,44 @@ class PizzaImportOrchestratorIntegrationTest {
         assertThat(jdbcClient.sql("SELECT order_date || '|' || order_time FROM orders WHERE source_order_id = 1")
                 .query(String.class)
                 .single()).isEqualTo("2020-02-02|10:00:00");
+    }
+
+    @Test
+    @DisplayName("run persists every order item linked to its order and pizza with its quantity")
+    void run_persistsOrderItemsLinkedToOrderAndPizza() {
+        orchestrator.run();
+
+        List<String> orderItems = jdbcClient.sql("""
+                SELECT oi.source_order_details_id || '|' || o.source_order_id || '|' || p.code || '|' || oi.quantity
+                FROM order_item oi
+                JOIN orders o ON o.id = oi.order_id
+                JOIN pizza p ON p.id = oi.pizza_id
+                ORDER BY oi.source_order_details_id
+                """).query(String.class).list();
+
+        assertThat(orderItems).containsExactly(
+                "1|1|bbq_ckn_s|1",
+                "2|2|pepperoni_xl|1",
+                "3|2|ckn_pesto_m|2",
+                "4|3|pep_msh_pep_s|1",
+                "5|4|bbq_ckn_l|3",
+                "6|5|pepperoni_xxl|1",
+                "7|5|bbq_ckn_s|1"
+        );
+    }
+
+    @Test
+    @DisplayName("run skips order items whose source id already exists")
+    void run_skipsOrderItemsWhoseSourceIdAlreadyExists() {
+        orchestrator.run();
+        jdbcClient.sql("UPDATE order_item SET quantity = 9 WHERE source_order_details_id = 1").update();
+
+        orchestrator.run();
+
+        assertThat(count("order_item")).isEqualTo(7);
+        assertThat(jdbcClient.sql("SELECT quantity FROM order_item WHERE source_order_details_id = 1")
+                .query(Integer.class)
+                .single()).isEqualTo(9);
     }
 
     private List<String> ingredientsOf(String pizzaTypeCode) {

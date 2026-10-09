@@ -21,6 +21,7 @@ app:
     pizza-types-file: classpath:data/pizza_types.csv
     pizzas-file: classpath:data/pizzas.csv
     orders-file: classpath:data/orders.csv
+    order-details-file: classpath:data/order_details.csv
     chunk-size: 1000
 
 management:

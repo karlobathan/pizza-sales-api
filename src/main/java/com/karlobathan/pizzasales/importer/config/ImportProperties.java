@@ -10,6 +10,7 @@ public record ImportProperties(
         String pizzaTypesFile,
         String pizzasFile,
         String ordersFile,
+        String orderDetailsFile,
         @Positive int chunkSize // rows persisted per transaction for large files
 ) {
 }
