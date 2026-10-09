@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
-class OrderApiIntegrationTest {
+class OrderApiIT {
 
     @Autowired
     private MockMvc mockMvc;
