@@ -16,7 +16,7 @@ import java.util.List;
  * @param orderTime     time the order was placed
  * @param items         the order's lines, ordered by id
  * @param totalQuantity number of pizzas across all lines
- * @param totalPrice    sum of the line totals, in USD
+ * @param totalPrice    sum of the line totals
  */
 public record OrderResponse(
         Long id,

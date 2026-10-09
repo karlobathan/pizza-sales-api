@@ -13,7 +13,7 @@ import java.math.BigDecimal;
  *
  * @param pizzaTypeId database id of the pizza type, as returned by {@code GET /api/pizza-types}
  * @param size        size; a pizza type has at most one pizza per size
- * @param price       price in USD, with at most 2 decimals; orders show their totals at the current price
+ * @param price       price, with at most 2 decimals; orders show their totals at the current price
  */
 public record PizzaUpdateRequest(
         @NotNull Long pizzaTypeId,

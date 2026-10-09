@@ -17,7 +17,7 @@ import java.math.BigDecimal;
  * @param code        unique code, e.g. {@code pepperoni_m}; can't be changed later
  * @param pizzaTypeId database id of the pizza type, as returned by {@code GET /api/pizza-types}
  * @param size        size; a pizza type has at most one pizza per size
- * @param price       price in USD, with at most 2 decimals
+ * @param price       price, with at most 2 decimals
  */
 public record PizzaCreateRequest(
         @Schema(example = "pepperoni_m")
