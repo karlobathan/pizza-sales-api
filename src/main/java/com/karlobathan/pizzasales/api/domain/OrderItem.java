@@ -30,8 +30,8 @@ public class OrderItem {
     @SequenceGenerator(name = "order_item_seq", sequenceName = "order_item_id_seq")
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private Long sourceOrderDetailsId; // natural/source id, kept for idempotent re-import (order_details_id in CSV)
+    @Column(unique = true)
+    private Long sourceOrderDetailsId; // natural/source id, kept for idempotent re-import (order_details_id in CSV); null if created via the API
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false)

@@ -33,9 +33,11 @@ class PizzaImportOrchestratorIT {
 
     @BeforeEach
     void setUp() {
+        // sequences are not reset: Hibernate caches blocks of ids across tests, and a reset sequence would hand out
+        // ids below the cached ones, so rows would no longer be ordered by id in the order they were inserted
         jdbcClient.sql("""
                 TRUNCATE order_item, orders, pizza, pizza_type_ingredient, pizza_type, pizza_ingredient, pizza_category
-                RESTART IDENTITY CASCADE
+                CASCADE
                 """).update();
     }
 

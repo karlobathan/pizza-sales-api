@@ -1,5 +1,6 @@
 package com.karlobathan.pizzasales.api.service;
 
+import com.karlobathan.pizzasales.api.dto.OrderRequest;
 import com.karlobathan.pizzasales.api.dto.OrderResponse;
 import com.karlobathan.pizzasales.api.dto.OrderSummaryResponse;
 import com.karlobathan.pizzasales.api.dto.PageResponse;
@@ -9,7 +10,7 @@ import com.karlobathan.pizzasales.api.exception.ResourceNotFoundException;
 import java.time.LocalDate;
 
 /**
- * Read access to orders: when each was placed, and the pizzas on it.
+ * Access to orders: when each was placed, and the pizzas on it.
  */
 public interface OrderService {
 
@@ -33,4 +34,13 @@ public interface OrderService {
      * @throws ResourceNotFoundException if no order has this id
      */
     OrderResponse findById(Long id);
+
+    /**
+     * Creates an order with its items. Nothing is saved if any item is invalid.
+     *
+     * @param request the order's date, time and items
+     * @return the created order with its new id, items (in request order) and totals
+     * @throws InvalidRequestException if an item references a pizza that doesn't exist
+     */
+    OrderResponse create(OrderRequest request);
 }

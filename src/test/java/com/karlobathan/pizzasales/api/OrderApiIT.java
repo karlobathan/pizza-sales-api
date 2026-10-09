@@ -53,9 +53,11 @@ class OrderApiIT {
 
     @BeforeEach
     void setUp() {
+        // sequences are not reset: Hibernate caches blocks of ids across tests, and a reset sequence would hand out
+        // ids below the cached ones, so rows would no longer be ordered by id in the order they were inserted
         jdbcClient.sql("""
                 TRUNCATE order_item, orders, pizza, pizza_type_ingredient, pizza_type, pizza_ingredient, pizza_category
-                RESTART IDENTITY CASCADE
+                CASCADE
                 """).update();
         pizzaImportOrchestrator.run();
         orderImportOrchestrator.run();
@@ -170,6 +172,32 @@ class OrderApiIT {
                     .andExpect(jsonPath(documented + ".schema['$ref']").value("#/components/schemas/ProblemDetail"))
                     .andExpect(jsonPath(documented + ".example").value(JsonPath.<Object>read(actual, "$")));
         }
+    }
+
+    @Test
+    @DisplayName("OpenAPI docs give every order date and time field an example")
+    void apiDocs_giveOrderDateAndTimeFieldsAnExample() throws Exception {
+        for (String schema : List.of("OrderRequest", "OrderResponse", "OrderSummaryResponse")) {
+            String properties = "$.components.schemas." + schema + ".properties";
+            mockMvc.perform(get("/v3/api-docs"))
+                    .andExpect(jsonPath(properties + ".orderDate.type").value("string"))
+                    .andExpect(jsonPath(properties + ".orderDate.format").value("date"))
+                    .andExpect(jsonPath(properties + ".orderDate.example").value("2015-12-31"))
+                    .andExpect(jsonPath(properties + ".orderDate.description").value(
+                            "Date as yyyy-MM-dd: four-digit year, then two-digit month, then two-digit day"))
+                    .andExpect(jsonPath(properties + ".orderTime.type").value("string"))
+                    .andExpect(jsonPath(properties + ".orderTime.format").value("time"))
+                    .andExpect(jsonPath(properties + ".orderTime.example").value("18:30:00"));
+        }
+    }
+
+    @Test
+    @DisplayName("OpenAPI docs give the order search date parameters unambiguous examples")
+    void apiDocs_giveSearchDateParametersUnambiguousExamples() throws Exception {
+        String parameters = "$.paths['/api/orders'].get.parameters";
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(jsonPath(parameters + "[?(@.name == 'from')].example", contains("2015-01-13")))
+                .andExpect(jsonPath(parameters + "[?(@.name == 'to')].example", contains("2015-01-31")));
     }
 
     // database ids of the orders with these source order ids, in the same order (Integer, as JSON numbers parse to it)
