@@ -1,6 +1,6 @@
 package com.karlobathan.pizzasales.importer.service;
 
-import com.karlobathan.pizzasales.importer.config.ImportProperties;
+import com.karlobathan.pizzasales.importer.config.PizzaImportProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -9,30 +9,25 @@ import java.util.function.Consumer;
 
 /**
  * Orchestrates the import of pizza data from CSV files.
- * It uses the provided ImportProperties to determine the file paths and
- * delegates the actual import logic to the PizzaTypeImportService, PizzaImportService, OrderImportService
- * and OrderItemImportService. Files are imported in dependency order: pizza types before the pizzas that
- * reference them, and pizzas and orders before the order items that reference both.
+ * It uses the provided PizzaImportProperties to determine the file paths and
+ * delegates the actual import logic to the PizzaTypeImportService and PizzaImportService.
+ * Pizza types are imported first because pizzas reference them.
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class PizzaImportOrchestrator implements Runnable {
 
-    private final ImportProperties importProperties;
-    private final Consumer<String> pizzaTypeImportService;
-    private final Consumer<String> pizzaImportService;
-    private final Consumer<String> orderImportService;
-    private final Consumer<String> orderItemImportService;
+    private final PizzaImportProperties pizzaImportProperties;
+    private final Consumer<String>      pizzaTypeImportService;
+    private final Consumer<String>      pizzaImportService;
 
     @Override
     public void run() {
-        log.info("Starting pizza data loading from CSV files, using properties: {}", importProperties);
+        log.info("Starting pizza data loading from CSV files, using properties: {}", pizzaImportProperties);
 
-        pizzaTypeImportService.accept(importProperties.pizzaTypesFile());
-        pizzaImportService.accept(importProperties.pizzasFile());
-        orderImportService.accept(importProperties.ordersFile());
-        orderItemImportService.accept(importProperties.orderDetailsFile());
+        pizzaTypeImportService.accept(pizzaImportProperties.typesFile());
+        pizzaImportService.accept(pizzaImportProperties.file());
 
         log.info("Pizza data loading finished.");
     }

@@ -4,13 +4,12 @@ import jakarta.validation.constraints.Positive;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties(prefix = "app.import")
+/**
+ * Settings shared by every import job ({@code app.import}).
+ */
+@ConfigurationProperties(prefix = AppProperties.IMPORT_PREFIX)
 @Validated
 public record ImportProperties(
-        String pizzaTypesFile,
-        String pizzasFile,
-        String ordersFile,
-        String orderDetailsFile,
         @Positive int chunkSize // rows persisted per transaction for large files
 ) {
 }

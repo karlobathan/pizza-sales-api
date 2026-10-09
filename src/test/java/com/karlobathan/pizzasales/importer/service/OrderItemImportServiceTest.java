@@ -68,7 +68,7 @@ class OrderItemImportServiceTest {
 
     @BeforeEach
     void setUp() {
-        ImportProperties importProperties = new ImportProperties(null, null, null, RESOURCE_PATH, CHUNK_SIZE);
+        ImportProperties importProperties = new ImportProperties(CHUNK_SIZE);
         service = new OrderItemImportService(importProperties,
                 orderItemRepository,
                 orderRepository,

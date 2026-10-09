@@ -55,7 +55,7 @@ class OrderImportServiceTest {
 
     @BeforeEach
     void setUp() {
-        ImportProperties importProperties = new ImportProperties(null, null, RESOURCE_PATH, null, CHUNK_SIZE);
+        ImportProperties importProperties = new ImportProperties(CHUNK_SIZE);
         service = new OrderImportService(importProperties, orderRepository, csvResourceLoader, chunkedEntityPersister);
     }
 

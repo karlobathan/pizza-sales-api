@@ -18,11 +18,13 @@ spring:
 
 app:
   import:
-    pizza-types-file: classpath:data/pizza_types.csv
-    pizzas-file: classpath:data/pizzas.csv
-    orders-file: classpath:data/orders.csv
-    order-details-file: classpath:data/order_details.csv
     chunk-size: 1000
+    pizzas:
+      types-file: classpath:data/pizza_types.csv
+      file: classpath:data/pizzas.csv
+    orders:
+      file: classpath:data/orders.csv
+      details-file: classpath:data/order_details.csv
 
 management:
   endpoints:

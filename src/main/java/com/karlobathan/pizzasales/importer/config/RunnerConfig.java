@@ -1,6 +1,7 @@
 package com.karlobathan.pizzasales.importer.config;
 
 import com.karlobathan.pizzasales.importer.runner.ImportRunner;
+import com.karlobathan.pizzasales.importer.service.OrderImportOrchestrator;
 import com.karlobathan.pizzasales.importer.service.PizzaImportOrchestrator;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -10,12 +11,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@EnableConfigurationProperties(ImportProperties.class)
+@EnableConfigurationProperties({ImportProperties.class, PizzaImportProperties.class, OrderImportProperties.class})
 public class RunnerConfig {
 
     @Profile("import-pizzas")
     @Bean
     public ApplicationRunner pizzaImportRunner(PizzaImportOrchestrator orchestrator, ConfigurableApplicationContext context) {
+        return new ImportRunner(orchestrator, context);
+    }
+
+    @Profile("import-orders")
+    @Bean
+    public ApplicationRunner orderImportRunner(OrderImportOrchestrator orchestrator, ConfigurableApplicationContext context) {
         return new ImportRunner(orchestrator, context);
     }
 }
