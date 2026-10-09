@@ -36,8 +36,9 @@ import java.util.stream.Collectors;
 /**
  * {@link OrderService} backed by the database. Searching runs one query for the page and one to count; reading
  * an order runs one query for the order and one for its items with their pizzas and pizza types. Creating an order
- * checks every referenced pizza in one query before saving anything, so an invalid item saves nothing. Deleting an
- * order is a soft delete: it only sets the order's deleted_at, and every query then skips it.
+ * checks every referenced pizza in one query before saving anything, so an invalid item saves nothing. Replacing an
+ * order soft-deletes its current items in one statement and saves the new ones. Deleting an order is a soft delete:
+ * it only sets the order's deleted_at, and every query then skips it.
  */
 @Service
 @RequiredArgsConstructor
@@ -77,23 +78,42 @@ public class DefaultOrderService implements OrderService {
                 .orderDate(request.orderDate())
                 .orderTime(request.orderTime())
                 .build());
-        List<OrderItem> items = orderItemRepository.saveAll(request.items()
-                .stream()
+        return orderMapper.toResponse(order, saveItems(order, request.items(), pizzas));
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse replace(Long id, OrderRequest request) {
+        Order order = getOrder(id);
+        // checked before anything changes, so an invalid item leaves the order as it was
+        Map<Long, Pizza> pizzas = findPizzas(request.items());
+
+        order.setOrderDate(request.orderDate()); // written on commit
+        order.setOrderTime(request.orderTime());
+        orderItemRepository.softDeleteByOrderId(id, Instant.now());
+        return orderMapper.toResponse(order, saveItems(order, request.items(), pizzas));
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        Order order = getOrder(id);
+        order.setDeletedAt(Instant.now()); // written on commit; the items stay, hidden along with the order
+    }
+
+    // findById already skips deleted orders, so a deleted order is not found
+    private Order getOrder(Long id) {
+        return orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(ApiResources.ORDER, id));
+    }
+
+    private List<OrderItem> saveItems(Order order, List<OrderItemRequest> items, Map<Long, Pizza> pizzas) {
+        return orderItemRepository.saveAll(items.stream()
                 .map(item -> OrderItem.builder()
                         .order(order)
                         .pizza(pizzas.get(item.pizzaId()))
                         .quantity(item.quantity())
                         .build())
                 .toList());
-        return orderMapper.toResponse(order, items);
-    }
-
-    @Override
-    @Transactional
-    public void delete(Long id) {
-        // findById already skips deleted orders, so deleting one twice is not found
-        Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(ApiResources.ORDER, id));
-        order.setDeletedAt(Instant.now()); // written on commit; the items stay, hidden along with the order
     }
 
     // every referenced pizza, with its pizza type for the response, in one query; fails before anything is saved

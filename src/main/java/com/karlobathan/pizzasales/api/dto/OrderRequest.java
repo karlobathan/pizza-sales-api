@@ -11,7 +11,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 /**
- * A whole order, for creating one.
+ * A whole order, for creating one ({@code POST}) or replacing one ({@code PUT}).
  *
  * @param orderDate date the order was placed
  * @param orderTime time the order was placed

@@ -45,6 +45,19 @@ public interface OrderService {
     OrderResponse create(OrderRequest request);
 
     /**
+     * Replaces an order's date, time and all of its items. Nothing changes if any item is invalid. The replaced
+     * items are soft-deleted: no endpoint returns them any more, but they stay in the database so re-running the
+     * import doesn't add them back. The new items get new ids.
+     *
+     * @param id      the order's database id
+     * @param request the order's new date, time and items
+     * @return the updated order with its new items (in request order) and totals
+     * @throws ResourceNotFoundException if no order has this id, or it is deleted
+     * @throws InvalidRequestException   if an item references a pizza that doesn't exist
+     */
+    OrderResponse replace(Long id, OrderRequest request);
+
+    /**
      * Soft-deletes an order: from then on no endpoint returns it, and looking it up gives not found. The order and
      * its items stay in the database, so re-running the import doesn't bring it back.
      *

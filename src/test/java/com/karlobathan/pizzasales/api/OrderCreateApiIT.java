@@ -168,10 +168,10 @@ class OrderCreateApiIT {
                 .getResponse()
                 .getContentAsString();
 
-        String documented = "$.components.responses.OrderCreateBadRequest.content['application/problem+json']";
+        String documented = "$.components.responses.OrderWriteBadRequest.content['application/problem+json']";
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(jsonPath("$.paths['/api/orders'].post.responses['400']['$ref']")
-                        .value("#/components/responses/OrderCreateBadRequest"))
+                        .value("#/components/responses/OrderWriteBadRequest"))
                 .andExpect(jsonPath("$.paths['/api/orders'].post.responses['201'].content['application/json'].schema['$ref']")
                         .exists())
                 .andExpect(jsonPath(documented + ".schema['$ref']").value("#/components/schemas/ProblemDetail"))

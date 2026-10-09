@@ -15,9 +15,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "order_item")
+// soft delete: every JPQL/criteria query and lookup skips replaced items; native queries still see them
+@SQLRestriction("deleted_at IS NULL")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -43,4 +48,6 @@ public class OrderItem {
 
     @Column(nullable = false)
     private Integer quantity;
+
+    private Instant deletedAt; // when the item was replaced through the API; null while it is part of its order
 }

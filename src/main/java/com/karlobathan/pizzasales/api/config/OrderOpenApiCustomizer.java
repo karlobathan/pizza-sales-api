@@ -21,8 +21,8 @@ public class OrderOpenApiCustomizer implements OpenApiCustomizer {
     // the order search's 400 is about its query parameters, not an id, so it has its own component
     static final String ORDER_SEARCH_BAD_REQUEST = "OrderSearchBadRequest";
 
-    // creating an order's 400 is about the request body, so it has its own component too
-    static final String ORDER_CREATE_BAD_REQUEST = "OrderCreateBadRequest";
+    // creating or replacing an order's 400 is about the request body, so it has its own component too
+    static final String ORDER_WRITE_BAD_REQUEST = "OrderWriteBadRequest";
 
     @Override
     public void customise(OpenAPI openApi) {
@@ -42,10 +42,10 @@ public class OrderOpenApiCustomizer implements OpenApiCustomizer {
         );
 
         ProblemDetailResponses.addResponse(openApi,
-                ORDER_CREATE_BAD_REQUEST,
+                ORDER_WRITE_BAD_REQUEST,
                 "Invalid order: an item references a pizza that doesn't exist, a required field is missing, "
-                        + "items is empty, a quantity is below 1, or the body is not valid JSON. "
-                        + "Invalid fields are listed in 'errors'.",
+                        + "items is empty, a quantity is below 1, the body is not valid JSON, "
+                        + "or (when replacing) the id is not a number. Invalid fields are listed in 'errors'.",
                 ProblemDetailResponses.example("Invalid request",
                         400,
                         // built by the same factory the service throws, so the example can't drift from it

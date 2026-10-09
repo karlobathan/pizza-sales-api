@@ -32,10 +32,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -290,6 +292,64 @@ class OrderControllerTest {
     @DisplayName("DELETE /api/orders/{id} returns 400 problem detail when the id is not a number")
     void delete_returnsBadRequestWhenIdIsNotANumber() throws Exception {
         mockMvc.perform(delete("/api/orders/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+        verifyNoInteractions(orderService);
+    }
+
+    @Test
+    @DisplayName("PUT /api/orders/{id} replaces the order and returns it")
+    void replace_returnsReplacedOrder() throws Exception {
+        when(orderService.replace(7L, ORDER_REQUEST)).thenReturn(new OrderResponse(7L,
+                LocalDate.of(2015, 3, 1),
+                LocalTime.of(18, 30),
+                List.of(),
+                0,
+                BigDecimal.ZERO
+        ));
+
+        mockMvc.perform(put("/api/orders/7").contentType(MediaType.APPLICATION_JSON).content(ORDER_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(7))
+                .andExpect(jsonPath("$.orderDate").value("2015-03-01"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/orders/{id} requires every field, listing the missing ones")
+    void replace_requiresEveryField() throws Exception {
+        mockMvc.perform(put("/api/orders/7").contentType(MediaType.APPLICATION_JSON).content("""
+                        {"orderDate": "2015-03-01"}
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[*].field", contains("items", "orderTime")));
+        verifyNoInteractions(orderService);
+    }
+
+    @Test
+    @DisplayName("PUT /api/orders/{id} returns 404 problem detail when the order does not exist")
+    void replace_returnsNotFoundProblemDetail() throws Exception {
+        when(orderService.replace(99L, ORDER_REQUEST)).thenThrow(new ResourceNotFoundException(ApiResources.ORDER, 99L));
+
+        mockMvc.perform(put("/api/orders/99").contentType(MediaType.APPLICATION_JSON).content(ORDER_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail").value("Order with id 99 not found"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/orders/{id} returns 400 problem detail when the service rejects unknown pizzas")
+    void replace_returnsBadRequestForUnknownPizzas() throws Exception {
+        when(orderService.replace(7L, ORDER_REQUEST)).thenThrow(InvalidRequestException.unknownPizzas(List.of(10L)));
+
+        mockMvc.perform(put("/api/orders/7").contentType(MediaType.APPLICATION_JSON).content(ORDER_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Unknown pizza id(s): 10"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/orders/{id} returns 400 problem detail when the id is not a number")
+    void replace_returnsBadRequestWhenIdIsNotANumber() throws Exception {
+        mockMvc.perform(put("/api/orders/abc").contentType(MediaType.APPLICATION_JSON).content(ORDER_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
         verifyNoInteractions(orderService);

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -40,6 +41,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -197,5 +201,64 @@ class DefaultOrderServiceTest {
                 .withMessage("Order with id 99 not found");
         verify(orderRepository, never()).delete(any(Order.class));
         verifyNoInteractions(orderItemRepository);
+    }
+
+    @Test
+    @DisplayName("replace sets date and time, soft-deletes the current items and saves the new ones")
+    void replace_softDeletesCurrentItemsAndSavesNewOnes() {
+        LocalDate date = LocalDate.of(2015, 3, 1);
+        LocalTime time = LocalTime.of(18, 30);
+        Pizza pizza = Pizza.builder().id(10L).build();
+        Order order = Order.builder().id(7L).orderDate(LocalDate.of(2015, 1, 1)).orderTime(LocalTime.NOON).build();
+        OrderResponse response = new OrderResponse(7L, date, time, List.of(), 0, BigDecimal.ZERO);
+        when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
+        when(pizzaRepository.findWithPizzaTypeByIdIn(Set.of(10L))).thenReturn(List.of(pizza));
+        when(orderItemRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(orderMapper.toResponse(any(Order.class), anyList())).thenReturn(response);
+        Instant before = Instant.now();
+
+        OrderResponse result = service.replace(7L, new OrderRequest(date, time, List.of(new OrderItemRequest(10L, 3))));
+
+        assertThat(result).isSameAs(response);
+        assertThat(order.getOrderDate()).isEqualTo(date);
+        assertThat(order.getOrderTime()).isEqualTo(time);
+        ArgumentCaptor<Instant> deletedAt = ArgumentCaptor.forClass(Instant.class);
+        InOrder inOrder = inOrder(orderItemRepository);
+        inOrder.verify(orderItemRepository).softDeleteByOrderId(eq(7L), deletedAt.capture());
+        inOrder.verify(orderItemRepository).saveAll(itemsCaptor.capture());
+        assertThat(deletedAt.getValue()).isBetween(before, Instant.now());
+        assertThat(itemsCaptor.getValue()).singleElement().satisfies(item -> {
+            assertThat(item.getOrder()).isSameAs(order);
+            assertThat(item.getPizza()).isSameAs(pizza);
+            assertThat(item.getQuantity()).isEqualTo(3);
+            assertThat(item.getDeletedAt()).isNull();
+        });
+        verify(orderMapper).toResponse(order, itemsCaptor.getValue());
+    }
+
+    @Test
+    @DisplayName("replace leaves the order and its items untouched when a pizza is unknown")
+    void replace_leavesOrderUntouchedWhenPizzaIsUnknown() {
+        Order order = Order.builder().id(7L).orderDate(LocalDate.of(2015, 1, 1)).orderTime(LocalTime.NOON).build();
+        when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
+        when(pizzaRepository.findWithPizzaTypeByIdIn(Set.of(99L))).thenReturn(List.of());
+
+        assertThatExceptionOfType(InvalidRequestException.class).isThrownBy(() -> service.replace(7L,
+                new OrderRequest(LocalDate.of(2015, 3, 1), LocalTime.of(18, 30), List.of(new OrderItemRequest(99L, 1)))
+        )).withMessage("Unknown pizza id(s): 99");
+        assertThat(order.getOrderDate()).isEqualTo(LocalDate.of(2015, 1, 1));
+        assertThat(order.getOrderTime()).isEqualTo(LocalTime.NOON);
+        verifyNoInteractions(orderItemRepository, orderMapper);
+    }
+
+    @Test
+    @DisplayName("replace throws resource not found without checking pizzas or touching items")
+    void replace_throwsResourceNotFound() {
+        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(ResourceNotFoundException.class).isThrownBy(() -> service.replace(99L,
+                new OrderRequest(LocalDate.of(2015, 3, 1), LocalTime.of(18, 30), List.of(new OrderItemRequest(10L, 1)))
+        )).withMessage("Order with id 99 not found");
+        verifyNoInteractions(pizzaRepository, orderItemRepository);
     }
 }

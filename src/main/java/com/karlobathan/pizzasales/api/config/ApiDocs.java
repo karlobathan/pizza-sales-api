@@ -21,7 +21,7 @@ public final class ApiDocs {
     public static final String ORDER_NOT_FOUND          = RESPONSES + OrderOpenApiCustomizer.ORDER + NOT_FOUND;
     public static final String ORDER_BAD_REQUEST        = RESPONSES + OrderOpenApiCustomizer.ORDER + BAD_REQUEST;
     public static final String ORDER_SEARCH_BAD_REQUEST = RESPONSES + OrderOpenApiCustomizer.ORDER_SEARCH_BAD_REQUEST;
-    public static final String ORDER_CREATE_BAD_REQUEST = RESPONSES + OrderOpenApiCustomizer.ORDER_CREATE_BAD_REQUEST;
+    public static final String ORDER_WRITE_BAD_REQUEST  = RESPONSES + OrderOpenApiCustomizer.ORDER_WRITE_BAD_REQUEST;
 
     /**
      * Example for {@code LocalTime} fields, which swagger-core gives no example of its own. Jackson writes them as
