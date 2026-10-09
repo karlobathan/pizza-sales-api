@@ -28,10 +28,12 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -263,5 +265,33 @@ class OrderControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Invalid request"))
                 .andExpect(jsonPath("$.detail").value("Unknown pizza id(s): 10"));
+    }
+
+    @Test
+    @DisplayName("DELETE /api/orders/{id} returns 204 with no body")
+    void delete_returnsNoContent() throws Exception {
+        mockMvc.perform(delete("/api/orders/7")).andExpect(status().isNoContent()).andExpect(content().string(""));
+
+        verify(orderService).delete(7L);
+    }
+
+    @Test
+    @DisplayName("DELETE /api/orders/{id} returns 404 problem detail when the order does not exist")
+    void delete_returnsNotFoundProblemDetail() throws Exception {
+        doThrow(new ResourceNotFoundException(ApiResources.ORDER, 99L)).when(orderService).delete(99L);
+
+        mockMvc.perform(delete("/api/orders/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Order with id 99 not found"));
+    }
+
+    @Test
+    @DisplayName("DELETE /api/orders/{id} returns 400 problem detail when the id is not a number")
+    void delete_returnsBadRequestWhenIdIsNotANumber() throws Exception {
+        mockMvc.perform(delete("/api/orders/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+        verifyNoInteractions(orderService);
     }
 }

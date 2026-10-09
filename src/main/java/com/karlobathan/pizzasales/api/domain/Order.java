@@ -12,12 +12,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
 @Table(name = "orders")
+// soft delete: every JPQL/criteria query and lookup skips deleted orders; native queries still see them
+@SQLRestriction("deleted_at IS NULL")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -38,4 +42,6 @@ public class Order {
 
     @Column(nullable = false)
     private LocalTime orderTime;
+
+    private Instant deletedAt; // when the order was deleted through the API; null while it is active
 }

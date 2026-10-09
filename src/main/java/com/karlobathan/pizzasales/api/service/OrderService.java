@@ -43,4 +43,13 @@ public interface OrderService {
      * @throws InvalidRequestException if an item references a pizza that doesn't exist
      */
     OrderResponse create(OrderRequest request);
+
+    /**
+     * Soft-deletes an order: from then on no endpoint returns it, and looking it up gives not found. The order and
+     * its items stay in the database, so re-running the import doesn't bring it back.
+     *
+     * @param id the order's database id
+     * @throws ResourceNotFoundException if no order has this id, or it is already deleted
+     */
+    void delete(Long id);
 }

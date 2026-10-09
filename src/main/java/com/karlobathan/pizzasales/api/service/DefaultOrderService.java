@@ -23,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,7 +36,8 @@ import java.util.stream.Collectors;
 /**
  * {@link OrderService} backed by the database. Searching runs one query for the page and one to count; reading
  * an order runs one query for the order and one for its items with their pizzas and pizza types. Creating an order
- * checks every referenced pizza in one query before saving anything, so an invalid item saves nothing.
+ * checks every referenced pizza in one query before saving anything, so an invalid item saves nothing. Deleting an
+ * order is a soft delete: it only sets the order's deleted_at, and every query then skips it.
  */
 @Service
 @RequiredArgsConstructor
@@ -84,6 +86,14 @@ public class DefaultOrderService implements OrderService {
                         .build())
                 .toList());
         return orderMapper.toResponse(order, items);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        // findById already skips deleted orders, so deleting one twice is not found
+        Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(ApiResources.ORDER, id));
+        order.setDeletedAt(Instant.now()); // written on commit; the items stay, hidden along with the order
     }
 
     // every referenced pizza, with its pizza type for the response, in one query; fails before anything is saved

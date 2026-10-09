@@ -16,13 +16,16 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -80,5 +83,19 @@ public class OrderController {
         OrderResponse created = orderService.create(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(created.id()).toUri();
         return ResponseEntity.created(location).body(created);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete an order",
+            description = "Deletes the order: from then on it no longer appears in any response, and getting or "
+                    + "deleting it again returns 404. It is kept in the database (soft delete), so a re-import "
+                    + "doesn't recreate it."
+    )
+    @ApiResponse(responseCode = "204", description = "Order deleted")
+    @ApiResponse(responseCode = "404", ref = ApiDocs.ORDER_NOT_FOUND)
+    @ApiResponse(responseCode = "400", ref = ApiDocs.ORDER_BAD_REQUEST)
+    public void delete(@PathVariable Long id) {
+        orderService.delete(id);
     }
 }

@@ -29,6 +29,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -39,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -170,5 +172,30 @@ class DefaultOrderServiceTest {
                 List.of(new OrderItemRequest(99L, 1), new OrderItemRequest(10L, 1), new OrderItemRequest(98L, 1))
         ))).withMessage("Unknown pizza id(s): 98, 99");
         verifyNoInteractions(orderRepository, orderItemRepository, orderMapper);
+    }
+
+    @Test
+    @DisplayName("delete marks the order deleted without removing it or its items")
+    void delete_marksOrderDeleted() {
+        Order order = Order.builder().id(7L).build();
+        when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
+        Instant before = Instant.now();
+
+        service.delete(7L);
+
+        assertThat(order.getDeletedAt()).isBetween(before, Instant.now());
+        verify(orderRepository, never()).delete(any(Order.class));
+        verifyNoInteractions(orderItemRepository);
+    }
+
+    @Test
+    @DisplayName("delete throws resource not found without changing anything")
+    void delete_throwsResourceNotFound() {
+        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(ResourceNotFoundException.class).isThrownBy(() -> service.delete(99L))
+                .withMessage("Order with id 99 not found");
+        verify(orderRepository, never()).delete(any(Order.class));
+        verifyNoInteractions(orderItemRepository);
     }
 }
