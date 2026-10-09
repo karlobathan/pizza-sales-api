@@ -1,0 +1,5 @@
+pizza_type_id,name,category,ingredients
+bbq_ckn,The Barbecue Chicken Pizza,Chicken,"Barbecued Chicken, Red Peppers, Tomatoes, Barbecue Sauce"
+ckn_pesto,The Chicken Pesto Pizza,chicken,"Chicken, tomatoes, Red Peppers, Pesto Sauce"
+pep_msh_pep,"The Pepperoni, Mushroom, and Peppers Pizza",Classic,"Pepperoni, Mushrooms, Red Peppers"
+pepperoni,The Pepperoni Pizza,Classic,"Mozzarella Cheese, Pepperoni"
