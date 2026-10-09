@@ -21,6 +21,21 @@ public final class ApiDocs {
     public static final String ORDER_NOT_FOUND          = RESPONSES + OrderOpenApiCustomizer.ORDER + NOT_FOUND;
     public static final String ORDER_BAD_REQUEST        = RESPONSES + OrderOpenApiCustomizer.ORDER + BAD_REQUEST;
     public static final String ORDER_SEARCH_BAD_REQUEST = RESPONSES + OrderOpenApiCustomizer.ORDER_SEARCH_BAD_REQUEST;
+    public static final String ORDER_WRITE_BAD_REQUEST  = RESPONSES + OrderOpenApiCustomizer.ORDER_WRITE_BAD_REQUEST;
+
+    /**
+     * Example for {@code LocalTime} fields, which swagger-core gives no example of its own. Jackson writes them as
+     * {@code HH:mm:ss} and also reads {@code HH:mm}.
+     */
+    public static final String TIME_EXAMPLE = "18:30:00";
+
+    /**
+     * Example for {@code LocalDate} fields: a day above 12, so the year-month-day order can't be misread as
+     * year-day-month.
+     */
+    public static final String DATE_EXAMPLE = "2015-12-31";
+
+    public static final String DATE_DESCRIPTION = "Date as yyyy-MM-dd: four-digit year, then two-digit month, then two-digit day";
 
     private ApiDocs() {
     }

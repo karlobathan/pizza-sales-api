@@ -12,12 +12,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
 @Table(name = "orders")
+// soft delete: every JPQL/criteria query and lookup skips deleted orders; native queries still see them
+@SQLRestriction("deleted_at IS NULL")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -30,12 +34,14 @@ public class Order {
     @SequenceGenerator(name = "orders_seq", sequenceName = "orders_id_seq")
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private Long sourceOrderId; // natural/source id, kept for idempotent re-import (order_id in CSV)
+    @Column(unique = true)
+    private Long sourceOrderId; // natural/source id, kept for idempotent re-import (order_id in CSV); null if created via the API
 
     @Column(nullable = false)
     private LocalDate orderDate;
 
     @Column(nullable = false)
     private LocalTime orderTime;
+
+    private Instant deletedAt; // when the order was deleted through the API; null while it is active
 }
